@@ -9,7 +9,7 @@ MODEL_PARAM = "yolo26n_ncnn_model/model.ncnn.param"
 MODEL_BIN   = "yolo26n_ncnn_model/model.ncnn.bin"
 VIDEO       = "video.mp4"
 SOURCE_FPS  = 30.0
-IMGSZ       = 320
+IMGSZ       = 256
 
 net = ncnn.Net()
 net.opt.use_vulkan_compute = False
@@ -34,8 +34,8 @@ while True:
     ex = net.create_extractor()
 
     t0 = time.perf_counter()
-    ex.input("images", mat_in)
-    _, _ = ex.extract("output0")
+    ex.input("in0", mat_in)
+    _, _ = ex.extract("out0")
     inference_times.append((time.perf_counter() - t0) * 1000)
 
 cap.release()

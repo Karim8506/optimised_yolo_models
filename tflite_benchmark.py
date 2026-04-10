@@ -15,10 +15,8 @@ interpreter.allocate_tensors()
 input_details  = interpreter.get_input_details()[0]
 output_details = interpreter.get_output_details()[0]
 
-IMGSZ = input_details["shape"][1]  # read size directly from model
-
-# int8 quantization params
-scale, zero_point = input_details["quantization"]
+IMGSZ      = input_details["shape"][1]
+input_type = input_details["dtype"]
 
 cap = cv2.VideoCapture(VIDEO)
 inference_times = []
@@ -28,13 +26,16 @@ while True:
     if not ret:
         break
 
-    # Preprocess
     img = cv2.resize(frame, (IMGSZ, IMGSZ))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = (img / (scale * 255.0) + zero_point).astype(np.int8)
-    img = img[np.newaxis]  # NHWC
 
-    interpreter.set_tensor(input_details["index"], img)
+    if input_type == np.float32:
+        img = img.astype(np.float32) / 255.0
+    else:
+        scale, zero_point = input_details["quantization"]
+        img = (img / (scale * 255.0) + zero_point).astype(np.int8)
+
+    interpreter.set_tensor(input_details["index"], img[np.newaxis])
 
     t0 = time.perf_counter()
     interpreter.invoke()
