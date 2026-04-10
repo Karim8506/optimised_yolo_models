@@ -5,8 +5,8 @@ import cv2
 import numpy as np
 import ncnn
 
-MODEL_PARAM = sys.argv[1] if len(sys.argv) > 1 else "model.param"
-MODEL_BIN   = sys.argv[2] if len(sys.argv) > 2 else "model.bin"
+MODEL_PARAM = "yolo26n_ncnn_model/model.ncnn.param"
+MODEL_BIN   = "yolo26n_ncnn_model/model.ncnn.bin"
 VIDEO       = "video.mp4"
 SOURCE_FPS  = 30.0
 IMGSZ       = 320
@@ -29,15 +29,13 @@ while True:
     img = cv2.resize(frame, (IMGSZ, IMGSZ))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     mat_in = ncnn.Mat.from_pixels(img, ncnn.Mat.PixelType.PIXEL_RGB, IMGSZ, IMGSZ)
-    mean_vals = [0, 0, 0]
-    norm_vals = [1 / 255.0, 1 / 255.0, 1 / 255.0]
-    mat_in.substract_mean_normalize(mean_vals, norm_vals)
+    mat_in.substract_mean_normalize([0, 0, 0], [1 / 255.0, 1 / 255.0, 1 / 255.0])
 
     ex = net.create_extractor()
 
     t0 = time.perf_counter()
-    ex.input("in0", mat_in)
-    _, _ = ex.extract("out0")
+    ex.input("images", mat_in)
+    _, _ = ex.extract("output0")
     inference_times.append((time.perf_counter() - t0) * 1000)
 
 cap.release()
